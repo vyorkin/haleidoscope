@@ -1,10 +1,10 @@
-cabal-version:       2.0
-name:                leo
-version:             0.0.0
+cabal-version:       3.0
+name:                haleidoscope
+version:             0.1.0
 synopsis:            Small functional programming language
-description:         Small functional programming language
-homepage:            https://github.com/vyorkin/leo
-bug-reports:         https://github.com/vyorkin/leo/issues
+description:         Small functional programming language (Tiger in Haskell)
+homepage:            https://github.com/vyorkin/haleidoscope
+bug-reports:         https://github.com/vyorkin/haleidoscope/issues
 license:             MIT
 license-file:        LICENSE
 author:              Vasiliy Yorkin
@@ -14,19 +14,28 @@ category:            Compilers/Interpreters
 build-type:          Simple
 extra-doc-files:     README.md
                    , CHANGELOG.md
-tested-with:         GHC == 8.6.4
+tested-with:         GHC == 8.8.2
 
 source-repository head
   type:                git
-  location:            https://github.com/vyorkin/leo.git
+  location:            https://github.com/vyorkin/haleidoscope.git
 
 library
   hs-source-dirs:      src
-  exposed-modules:     Leo
+  exposed-modules:     Haleidoscope
                        Prelude
 
-  build-depends:       base-noprelude ^>= 4.12.0.0
-                     , relude
+  other-modules:       Sandbox.Lexer.WordCount
+
+  build-depends:       base-noprelude ^>= 4.13
+                     , relude ^>= 0.6
+                     -- programs produced by alex use array package
+                     , array ^>= 0.5
+                     , llvm-hs ^>= 9.0
+                     , llvm-hs-pretty ^>= 0.9
+
+  build-tool-depends:  alex:alex ^>= 3.2
+                     , happy:happy ^>= 1.19
 
   ghc-options:         -Wall
                        -Wincomplete-uni-patterns
@@ -53,12 +62,12 @@ library
                        TypeApplications
                        ViewPatterns
 
-executable leo
+executable haleidoscope
   hs-source-dirs:      app
   main-is:             Main.hs
 
-  build-depends:       base-noprelude ^>= 4.12.0.0
-                     , leo
+  build-depends:       base-noprelude
+                     , haleidoscope
                      , relude
 
   ghc-options:         -Wall
@@ -89,13 +98,13 @@ executable leo
                        TypeApplications
                        ViewPatterns
 
-test-suite leo-test
+test-suite haleidoscope-test
   type:                exitcode-stdio-1.0
   hs-source-dirs:      test
   main-is:             Spec.hs
 
-  build-depends:       base-noprelude ^>= 4.12.0.0
-                     , leo
+  build-depends:       base-noprelude
+                     , haleidoscope
                      , relude
 
   ghc-options:         -Wall
@@ -126,14 +135,14 @@ test-suite leo-test
                        TypeApplications
                        ViewPatterns
 
-benchmark leo-benchmark
+benchmark haleidoscope-benchmark
   type:                exitcode-stdio-1.0
   hs-source-dirs:      benchmark
   main-is:             Main.hs
 
-  build-depends:       base-noprelude ^>= 4.12.0.0
+  build-depends:       base-noprelude
                      , gauge
-                     , leo
+                     , haleidoscope
                      , relude
 
   ghc-options:         -Wall

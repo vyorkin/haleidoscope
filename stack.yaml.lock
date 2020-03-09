@@ -5,15 +5,15 @@
 
 packages:
 - completed:
-    hackage: base-noprelude-4.12.0.0@sha256:dcd5ece10257f79fa16e207d558b31ab3467b205adae5d1976abdee28b1c8b4a,6845
+    hackage: base-noprelude-4.13.0.0@sha256:3cccbfda38e1422ca5cc436d58858ba51ff9114d2ed87915a6569be11e4e5a90,6842
     pantry-tree:
-      size: 158
-      sha256: 1e4118716a2078385341d7df2f876b616744c3a8f945247766e60f48e32b3d1d
+      size: 112
+      sha256: 90db92c8401880187ce642c5345407bcbd9546ea235524dd445cab2566ee3db1
   original:
-    hackage: base-noprelude-4.12.0.0
+    hackage: base-noprelude-4.13.0.0
 snapshots:
 - completed:
-    size: 497510
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/13/16.yaml
-    sha256: 3e56dd069db766f8e4c0a61ba49611e549c8b7757369fe1a063d1c33548790ac
-  original: lts-13.16
+    size: 491373
+    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/15/3.yaml
+    sha256: 29e9ff61b8bf4b4fcff55cde3ac106ebb971f0d21331dccac9eee63374fa6ca8
+  original: lts-15.3

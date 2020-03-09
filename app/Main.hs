@@ -1,6 +1,6 @@
 module Main (main) where
 
-import Leo (someFunc)
+import Haleidoscope (someFunc)
 
 
 main :: IO ()
