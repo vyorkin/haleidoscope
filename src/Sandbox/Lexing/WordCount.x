@@ -4,7 +4,7 @@
 -- the default Prelude (from base). Relude defines its own `undefined`, which has warning "attached".
 -- Also get rid of unused imports warning from the templates/wrappers.hs.
 
-module Sandbox.Lexer.WordCount (main) where
+module Sandbox.Lexing.WordCount (main) where
 }
 
 -- Specifies the kind of interface alex should

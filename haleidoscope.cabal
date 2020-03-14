@@ -1,4 +1,6 @@
-cabal-version:       3.0
+cabal-version:       2.4
+-- 3.0 is not supported by Stack yet
+-- see: https://github.com/haskell/haskell-ide-engine/issues/1564
 name:                haleidoscope
 version:             0.1.0
 synopsis:            Small functional programming language
@@ -25,12 +27,20 @@ library
   exposed-modules:     Haleidoscope
                        Prelude
 
-  other-modules:       Sandbox.Lexer.WordCount
+  other-modules:       Sandbox.Lexing.WordCount
+                     , Sandbox.Parsing.AST
+                     , Sandbox.Parsing.Eval
+                     , Sandbox.Parsing.Lexer
+                     , Sandbox.Parsing.Parser
+                     , Sandbox.Parsing.Driver
 
   build-depends:       base-noprelude ^>= 4.13
                      , relude ^>= 0.6
-                     -- programs produced by alex use array package
+                     , text ^>= 1.2
+                     , utf8-string ^>= 1.0
+                     -- programs (lexers) produced by alex use array package
                      , array ^>= 0.5
+                     , mtl ^>= 2.2
                      , llvm-hs ^>= 9.0
                      , llvm-hs-pretty ^>= 0.9
 
