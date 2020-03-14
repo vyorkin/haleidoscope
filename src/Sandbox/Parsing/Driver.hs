@@ -1,9 +1,9 @@
 module Sandbox.Parsing.Driver (repl, main) where
 
-import qualified Data.Text as Text
+import Data.Word (Word8)
 import qualified Codec.Binary.UTF8.String as String
-import System.IO (hSetBuffering, BufferMode(..))
-import System.IO.Error (tryIOError, isEOFError, ioError)
+import System.IO (hSetBuffering, BufferMode(..), stdout)
+import System.IO.Error (tryIOError, isEOFError)
 
 import Sandbox.Parsing.AST (Term)
 import Sandbox.Parsing.Eval (eval)
@@ -15,10 +15,10 @@ output t =
   let r = eval t
   in show t ++ "\n" ++ show r
 
-encode :: Text -> [Word8]
-encode = String.encode . Text.unpack
+encode :: String -> [Word8]
+encode = String.encode
 
-process :: Text -> IO ()
+process :: String -> IO ()
 process s = case evalP parse (encode s) of
   Left e -> putStrLn e
   Right r -> putStrLn $ output r
@@ -30,7 +30,7 @@ repl = do
   case line of
     Left e | isEOFError e -> putStrLn "Bye!"
     Left e -> ioError e
-    Right s | Text.null s -> repl
+    Right s | null s -> repl
     Right s -> process s >> repl
 
 main :: IO ()

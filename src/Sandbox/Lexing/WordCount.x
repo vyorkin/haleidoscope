@@ -1,9 +1,4 @@
 {
-{-# OPTIONS_GHC -Wno-warnings-deprecations -Wno-unused-imports #-}
--- For this project we use Relude (see the relude pkgs on hackage) instead of
--- the default Prelude (from base). Relude defines its own `undefined`, which has warning "attached".
--- Also get rid of unused imports warning from the templates/wrappers.hs.
-
 module Sandbox.Lexing.WordCount (main) where
 }
 
@@ -44,7 +39,7 @@ main = do
   -- Read the line into the string
   s <- getLine
   -- Call alex-generated function, get a list of tokens
-  let tokens = alexScanTokens (toString s)
+  let tokens = alexScanTokens s
   -- Print each word on a separate line
   mapM_ putStrLn tokens
 }

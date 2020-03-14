@@ -1,10 +1,4 @@
 {
-
-{-# OPTIONS_GHC -Wno-warnings-deprecations -Wno-unused-imports #-}
--- For this project we use Relude (see the relude pkgs on hackage) instead of
--- the default Prelude (from base). Relude defines its own `undefined`, which has warning "attached".
--- Also get rid of unused imports warning from the templates/wrappers.hs.
-
 module Sandbox.Parsing.Lexer
   ( P
   , Token(..)
@@ -13,9 +7,9 @@ module Sandbox.Parsing.Lexer
   , lexer
   ) where
 
-import Control.Monad.Error
+import Control.Monad.State (StateT, get, put, evalStateT)
+import Control.Monad.Except (throwError)
 import Data.Word
-
 }
 
 tokens :-
@@ -42,7 +36,7 @@ data Token
   | TElse
   | TIsZero
   | TEOF
-  deriving (Eq, Show)
+  deriving (Show)
 
 -- Next, we define functions that must be provided to Alex's basic interface
 -- More info: https://www.haskell.org/alex/doc/html/basic-api.html
@@ -97,23 +91,23 @@ readToken = do
   -- Try to scan a single token
   -- (For more info see: 3.2.2.2. Start codes in https://www.haskell.org/alex/doc/html/alex-files.html)
   case alexScan s 0 of
-    -- End of output. Return TEOF, which
+    -- End of output. Return `TEOF`, which
     -- indicates end of input to the parser
     AlexEOF -> return TEOF
     -- Error condition (a valid token could not be recognised).
-    -- We use the throwError function from MonadError class to
+    -- We use the `throwError` function from `MonadError` class to
     -- raise an exception within our monad
     AlexError _ -> throwError "!Lexical error"
     -- Indicates that some input needs to be skipped over.
     -- `input` - the position in the input from
-    -- which scanning should continue
+    -- which scanning should continue (remaining input)
     AlexSkip input _ -> do
-      put input -- Store input in our StateT
-      readToken -- Try again to find a token
+      put input -- Store the remaining input in our `StateT`
+      readToken -- Try to find a next token
     -- Token has been found
     AlexToken input _ token -> do
-      put input     -- Save the position to continue from
-      return token  -- In our case token is simply a value of the Token type
+      put input    -- Save the remaining input
+      return token -- In our case token is simply a value of the `Token` type
 
 lexer :: (Token -> P a) -> P a
 lexer cont = readToken >>= cont

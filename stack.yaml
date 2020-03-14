@@ -5,7 +5,6 @@ nix:
   packages: [llvm_9]
 
 extra-deps:
-  - base-noprelude-4.13.0.0
   - llvm-hs-pretty-0.9.0.0
 
 ghc-options:

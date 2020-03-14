@@ -1,12 +1,15 @@
 dev:
-	ghcid --restart=src/Sandbox/Parsing/Lexer.x --restart=src/Sandbox/Parsing/Parser.y -c cabal repl | source-highlight -s haskell -f esc
+	stack build --test --no-run-tests
+	ghcid --restart=src/Sandbox/Parsing/Lexer.x --restart=src/Sandbox/Parsing/Parser.y --command="cabal repl" | source-highlight -s haskell -f esc
 repl:
 	cabal repl
 build:
 	cabal build
+clean:
+	cabal clean
 prof:
 	cabal configure --enable-profiling
 noprof:
 	cabal configure --disable-profiling
 
-.PHONY: dev build prof noprof
+.PHONY: dev repl build clean prof noprof
