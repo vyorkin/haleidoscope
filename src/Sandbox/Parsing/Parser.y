@@ -24,27 +24,27 @@ import Sandbox.Parsing.Lexer
 -- Tokens
 
 %token
-true   {TTrue}
-false  {TFalse}
-zero   {TZero}
-succ   {TSucc}
-pred   {TPred}
-if     {TIf}
-then   {TThen}
-else   {TElse}
-iszero {TIsZero}
+true   { TTrue }
+false  { TFalse }
+zero   { TZero }
+succ   { TSucc }
+pred   { TPred }
+if     { TIf }
+then   { TThen }
+else   { TElse }
+iszero { TIsZero }
 
 -- Grammar rules
 
 %%
 
 Term
-: true {T}
-| false {F}
-| zero {Zero}
-| succ Term  {Succ $2}
-| pred Term {Pred $2}
-| if Term then Term else Term {IfThen $2 $4 $6}
+: true { T }
+| false { F }
+| zero { Zero }
+| succ Term  { Succ $2 }
+| pred Term { Pred $2 }
+| if Term then Term else Term { IfThen $2 $4 $6 }
 
 -- Error handler
 

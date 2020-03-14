@@ -1,6 +1,6 @@
 dev:
 	stack build --test --no-run-tests
-	ghcid --restart=src/Sandbox/Parsing/Lexer.x --restart=src/Sandbox/Parsing/Parser.y --command="cabal repl" | source-highlight -s haskell -f esc
+	ghcid --restart=src/Sandbox/Calc/Parser.y --command="cabal repl" | source-highlight -s haskell -f esc
 repl:
 	cabal repl
 build:
