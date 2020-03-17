@@ -3,10 +3,11 @@ module Haleidoscope.AST
   , Op(..)
   , Rel(..)
   , AST(..)
+  , isCmp
   ) where
 
 data Expr
-  = Num Float
+  = Num Double
   | Ident String
   | BinOp Op Expr Expr
   | Call String Expr
@@ -28,6 +29,11 @@ data Op
   | Div
   | Cmp Rel
   deriving (Eq, Show)
+
+isCmp :: Op -> Bool
+isCmp = \case
+  Cmp _ -> True
+  _ -> False
 
 data Prototype = Prototype String [String]
   deriving (Eq, Show)

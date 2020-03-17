@@ -30,7 +30,8 @@ library
                      , Haleidoscope.AST
                      , Haleidoscope.REPL
                      , Haleidoscope.LLVM
-                     , Haleidoscope.Builder
+                     , Haleidoscope.LLVM.Extra
+                     , Haleidoscope.LLVM.Builder
 
   other-modules:       Sandbox.Lexing.WordCount
                      , Sandbox.Parsing.AST

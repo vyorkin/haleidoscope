@@ -8,7 +8,7 @@ build:
 clean:
 	cabal clean
 tags:
-	rm tags
+	rm -f tags codex.tags
 	rm -rf .stack-work
 	codex update --force
 prof:
