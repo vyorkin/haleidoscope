@@ -1,10 +1,12 @@
 {
-module Haleidoscope.Lexer (main) where
+module Haleidoscope.Lexer (scan) where
 
 import Prelude hiding (GT, LT, EQ)
 import Control.Monad (when)
 import Data.Maybe (isJust, fromJust)
-import Numeric (readDec)
+import Numeric (readFloat)
+
+import Haleidoscope.Lexer.Types (Lexeme(..))
 }
 
 -- `%wrapper` directive specifies the kind of interface
@@ -69,9 +71,9 @@ tokens :-
 <0> \n           { skip }
 <0> $whitespace+ ;
 
-<0> @number      { getInteger }
+<0> @float       { getFloat }
 <0> @identifier  { getIdentifier }
--- <0> .            { \_ _ -> lexerError "Illegal character" }
+<0> .            { \_ _ -> lexerError "Illegal character" }
 
 {
 
@@ -90,31 +92,8 @@ tokens :-
 --   )
 
 -- -----------------------------------------------------------------------------
--- Lexeme and Token
+-- Token
 -- -----------------------------------------------------------------------------
-
-data Lexeme
-  = EOF
-  | IDENT String
-  | INT Int
-  | STRING String
-  | COMMA
-  | DOT
-  | LPAREN
-  | RPAREN
-  | PLUS
-  | MINUS
-  | TIMES
-  | DIV
-  | GE
-  | GT
-  | LE
-  | LT
-  | EQ
-  | NEQ
-  | DEF
-  | EXTERN
-  deriving (Eq, Show)
 
 data Token = Token
   AlexPosn       -- Position info
@@ -191,16 +170,16 @@ leaveString (pos, _, _, input) len = do
       raw = take len input
   return $ Token pos (STRING str) (Just raw)
 
--- INTEGER
+-- FLOAT
 
-getInteger :: Action
-getInteger (pos, _, _, input) len = do
-  when (length r /= 1) $ error "Invalid number"
+getFloat :: Action
+getFloat (pos, _, _, input) len = do
+  when (length r /= 1) $ error "Invalid float"
   let n = fst . head $ r
-  return $ Token pos (INT n) (Just s)
+  return $ Token pos (FLOAT n) (Just s)
   where
     s = take len input
-    r = readDec s
+    r = readFloat s
 
 -- IDENT
 
@@ -280,8 +259,8 @@ type Action = AlexInput -> Int -> Alex Token
 
 -- newtype Alex a = Alex { unAlex :: AlexState -> Either String (AlexState, a) }
 
-scanner :: String -> Either String [Token]
-scanner s = do
+scan :: String -> Either String [Token]
+scan s = do
   runAlex s loop
   where
     loop = do
@@ -322,18 +301,4 @@ alexComplementError (Alex al) =
     Right (s', x) -> Right (s', (x, Nothing))
     Left  message -> Right (s, (undefined, Just message)))
 
--- Calling alexScan will scan a single token from
--- the input stream, and return a value of type AlexReturn
-
--- alexScan
---   :: AlexInput         -- The current input
---   -> Int               -- The "start code"
---   -> AlexReturn action -- The return value
-
-main :: IO ()
-main = do
-  s <- getLine
-  case scanner s of
-    Left e -> error e
-    Right s -> putStrLn $ show s
 }
