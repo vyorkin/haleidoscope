@@ -2,6 +2,7 @@ module Haleidoscope.LLVM.Builder
   ( buildExpr
   ) where
 
+import Data.String (fromString)
 import Text.Read (readMaybe)
 import Data.Map (Map, (!?))
 import qualified Data.Map as Map
@@ -13,14 +14,16 @@ import qualified LLVM.AST.Type as Type
 import LLVM.AST (Operand(ConstantOperand))
 import LLVM.IRBuilder.Module (ModuleBuilder)
 import LLVM.IRBuilder.Monad (MonadIRBuilder, IRBuilderT)
-import LLVM.IRBuilder.Instruction (uitofp)
-import LLVM.AST.Constant (Constant(Float))
+import LLVM.IRBuilder.Instruction (uitofp, call)
+import LLVM.AST.Constant (Constant(Float, GlobalReference))
 import LLVM.AST.Float (SomeFloat(Double))
 
 import Haleidoscope.AST
 import Haleidoscope.LLVM.Extra (hoist, mostRecentDef)
 import LLVM.IRBuilder (fadd, fsub, fmul, fdiv, fcmp)
-import LLVM.AST.FloatingPointPredicate (FloatingPointPredicate(..))
+import LLVM.AST.FloatingPointPredicate (FloatingPointPredicate(OGE, OGT, OLE, OLT, OEQ, ONE))
+import LLVM.AST.Type (Type(FunctionType))
+import LLVM.AST.AddrSpace (AddrSpace(AddrSpace))
 
 type Binds = Map String Operand
 
@@ -52,5 +55,17 @@ buildExpr = \case
     let instr = buildInstr op
     tmp <- instr opA opB
     if isCmp op
+    -- Convert an unsigned integer constant to the
+    -- corresponding floating-point constant
     then uitofp tmp Type.double
     else return tmp
+  Call callee args -> do
+    ops <- mapM buildExpr args
+    let name = fromString callee
+        -- The last argument `False` means that this is not a
+        -- variable argument function (http://llvm.org/docs/LangRef.html#int-varargs)
+        typ = FunctionType Type.double (replicate (length args) Type.double) False
+        --                 ^ result type           ^ args list
+        ptrTyp = Type.PointerType typ (AddrSpace 0)
+        ref = GlobalReference ptrTyp name
+    call (ConstantOperand ref) (zip ops (repeat []))

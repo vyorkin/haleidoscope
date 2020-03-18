@@ -10,7 +10,7 @@ data Expr
   = Num Double
   | Ident String
   | BinOp Op Expr Expr
-  | Call String Expr
+  | Call String [Expr]
   deriving (Eq, Show)
 
 data Rel

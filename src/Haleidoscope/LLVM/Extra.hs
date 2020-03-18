@@ -19,7 +19,7 @@ import LLVM.IRBuilder.Internal.SnocList (getSnocList)
 --   }
 --
 
--- `SnocList` is the `List` where elements are kept in reverse order.
+-- `SnocList` is a `List` where elements are kept in reverse order.
 -- Hence the name `snoc`, which is reverse of `cons`. If your're curious -
 -- take a look at it definition, as of now it is just 21 lines of code
 
