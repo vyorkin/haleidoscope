@@ -27,6 +27,8 @@ library
   exposed-modules:     Haleidoscope
                      , Haleidoscope.Lexer
                      , Haleidoscope.Lexer.Types
+                     , Haleidoscope.Parser
+                     , Haleidoscope.Parser.Types
                      , Haleidoscope.AST
                      , Haleidoscope.REPL
                      , Haleidoscope.LLVM
@@ -40,10 +42,12 @@ library
                      , Sandbox.Parsing.Parser
                      , Sandbox.Parsing.Driver
                      , Sandbox.Calc.Parser
+                     , Sandbox.LLVM.Manual
 
   build-depends:       base ^>= 4.13
                      , text ^>= 1.2
                      , utf8-string ^>= 1.0
+                     , bytestring ^>= 0.10
                      -- programs (lexers) produced by alex use array package
                      , array ^>= 0.5
                      , containers ^>= 0.6

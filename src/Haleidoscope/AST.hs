@@ -2,6 +2,7 @@ module Haleidoscope.AST
   ( Expr(..)
   , Op(..)
   , Rel(..)
+  , Prototype(..)
   , AST(..)
   , isCmp
   ) where
@@ -39,7 +40,7 @@ data Prototype = Prototype String [String]
   deriving (Eq, Show)
 
 data AST
-  = Function Prototype Expr
-  | Extern Prototype
+  = Function Prototype Expr -- ^ Function definition
+  | Extern Prototype        -- ^ External function definition
   | TopLevel Expr
   deriving (Eq, Show)

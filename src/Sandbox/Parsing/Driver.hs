@@ -1,6 +1,5 @@
 module Sandbox.Parsing.Driver (repl, main) where
 
-import Data.Word (Word8)
 import qualified Codec.Binary.UTF8.String as String
 import System.IO (hSetBuffering, BufferMode(..), stdout)
 import System.IO.Error (tryIOError, isEOFError)
@@ -15,11 +14,8 @@ output t =
   let r = eval t
   in show t ++ "\n" ++ show r
 
-encode :: String -> [Word8]
-encode = String.encode
-
 process :: String -> IO ()
-process s = case evalP parse (encode s) of
+process s = case evalP parse (String.encode s) of
   Left e -> putStrLn e
   Right r -> putStrLn $ output r
 

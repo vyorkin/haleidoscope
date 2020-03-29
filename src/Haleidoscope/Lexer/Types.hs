@@ -5,7 +5,7 @@ module Haleidoscope.Lexer.Types
 data Lexeme
   = EOF
   | IDENT String
-  | FLOAT Float
+  | DOUBLE Double
   | STRING String
   | COMMA
   | DOT

@@ -1,5 +1,13 @@
 {
-module Haleidoscope.Lexer (scan) where
+module Haleidoscope.Lexer
+  ( Token(..)
+  , Alex
+  , scan
+  , runAlex
+  , alexMonadScan
+  , lexer
+  , module Haleidoscope.Lexer.Types
+  ) where
 
 import Prelude hiding (GT, LT, EQ)
 import Control.Monad (when)
@@ -64,20 +72,20 @@ tokens :-
 <state_string> \\\" { addCharToString '\"' }
 <state_string> \\\\ { addCharToString '\\' }
 <state_string> \\[\ \n\t\f\r\b\v]+\\       ;
-<state_string> \"   { leaveString `andBegin` state_initial }
-<state_string>  .   { addCurrentToString }
+<state_string> .    { addCurrentToString }
 <state_string> \n   { skip }
+<state_string> \"   { leaveString `andBegin` state_initial }
 
 <0> \n           { skip }
 <0> $whitespace+ ;
 
-<0> @float       { getFloat }
+<0> @float       { getDouble }
 <0> @identifier  { getIdentifier }
 <0> .            { \_ _ -> lexerError "Illegal character" }
 
 {
 
--- Data types Alex provides for position info:
+-- Data types Alex provides for position and input info:
 
 -- data AlexPosn
 --  = AlexPn !Int -- Absolute character offset
@@ -95,27 +103,30 @@ tokens :-
 -- Token
 -- -----------------------------------------------------------------------------
 
-data Token = Token
+data Token = T
   AlexPosn       -- Position info
   Lexeme         -- Token lexeme
   (Maybe String) -- Raw matching string
 
 instance Show Token where
-  show (Token _ EOF _) = "Token EOF"
-  show (Token pos l str) = "Token "
+  show (T _ EOF _) = "Token EOF"
+  show (T pos l str) = "Token "
     ++ show l
     ++ " " ++ showPosn pos ++ " "
     ++ maybe "" show str
 
 posn :: Token -> AlexPosn
-posn (Token pos _ _) = pos
+posn (T pos _ _) = pos
 
 -- | Makes a new token.
 mkT :: Lexeme -> AlexInput -> Int -> Alex Token
-mkT l (pos, _, _, str) len = return $ Token pos l (Just (take len str))
+mkT l (pos, _, _, str) len = return $ T pos l raw
+  where
+    raw :: Maybe String
+    raw = Just $ take len str
 
 isEOF :: Token -> Bool
-isEOF (Token _ l _) = l == EOF
+isEOF (T _ l _) = l == EOF
 
 -- -----------------------------------------------------------------------------
 -- Position info
@@ -124,12 +135,12 @@ isEOF (Token _ l _) = l == EOF
 type Pos = Maybe AlexPosn
 
 lineNumber :: Pos -> (Int, Int)
-lineNumber Nothing                   = (0, 0)
-lineNumber (Just (AlexPn _ lig col)) = (lig, col)
+lineNumber Nothing = (0, 0)
+lineNumber (Just (AlexPn _ line column)) = (line, column)
 
 -- | Given a position info returns "line:col".
 showPosn :: AlexPosn -> String
-showPosn (AlexPn _ line col) = show line ++ ':': show col
+showPosn (AlexPn _ line column) = show line ++ ':': show column
 
 -- -----------------------------------------------------------------------------
 -- States
@@ -141,6 +152,10 @@ state_initial = 0
 -- -----------------------------------------------------------------------------
 -- Actions
 -- -----------------------------------------------------------------------------
+
+-- | Type of the token action.
+-- (According to Alex User Guide).
+type Action = AlexInput -> Int -> Alex Token
 
 -- STRING
 
@@ -168,38 +183,39 @@ leaveString (pos, _, _, input) len = do
   setLexerStringState False
   let str = reverse s
       raw = take len input
-  return $ Token pos (STRING str) (Just raw)
+  return $ T pos (STRING str) (Just raw)
 
--- FLOAT
+-- DOUBLE
 
-getFloat :: Action
-getFloat (pos, _, _, input) len = do
-  when (length r /= 1) $ error "Invalid float"
-  let n = fst . head $ r
-  return $ Token pos (FLOAT n) (Just s)
+getDouble :: Action
+getDouble (pos, _, _, input) len = do
+  when (length res /= 1) $ error "Invalid float"
+  let n = fst . head $ res
+  return $ T pos (DOUBLE n) (Just str)
   where
-    s = take len input
-    r = readFloat s
+    str = take len input
+    res = readFloat str
 
 -- IDENT
 
 getIdentifier :: Action
 getIdentifier (pos, _, _, input) len = do
   let s = take len input
-  return $ Token pos (IDENT s) (Just s)
+  return $ T pos (IDENT s) (Just s)
 
 -- -----------------------------------------------------------------------------
 -- The user state monad
 -- -----------------------------------------------------------------------------
 
 -- Alex generates the following general state data type:
+
 -- data AlexState = AlexState
---   { alex_pos :: !AlexPosn     -- Position at current input location
---   , alex_inp :: String        -- The current input
---   , alex_chr :: !Char         -- The character before the input
---   , alex_bytes :: [Byte]      -- Rest of the bytes for the current char
---   , alex_scd :: !Int          -- The current startcode
---   , alex_ust :: AlexUserState -- AlexUserState will be defined in the user program
+--   { alex_pos   :: !AlexPosn     -- Position at current input location
+--   , alex_inp   :: String        -- The current input
+--   , alex_chr   :: !Char         -- The character before the input
+--   , alex_bytes :: [Byte]        -- Rest of the bytes for the current char
+--   , alex_scd   :: !Int          -- The current startcode
+--   , alex_ust   :: AlexUserState -- AlexUserState will be defined in the user program
 --   }
 
 data AlexUserState = AlexUserState
@@ -242,39 +258,64 @@ alexInitUserState :: AlexUserState
 alexInitUserState = AlexUserState
   { lexerStringState   = False
   , lexerStringValue   = ""
-  , parserCurrentToken = Token undefined EOF Nothing
+  , parserCurrentToken = T undefined EOF Nothing
   , parserPos          = Nothing
   }
 
 -- -----------------------------------------------------------------------------
 -- Definition needed by Alex
+-- -----------------------------------------------------------------------------
 
 alexEOF :: Alex Token
-alexEOF = return $ Token undefined EOF Nothing
+alexEOF = return $ T undefined EOF Nothing
 
 -- -----------------------------------------------------------------------------
 -- Execution
+-- -----------------------------------------------------------------------------
 
-type Action = AlexInput -> Int -> Alex Token
+-- Code generated by Alex:
 
 -- newtype Alex a = Alex { unAlex :: AlexState -> Either String (AlexState, a) }
 
-scan :: String -> Either String [Token]
-scan s = do
-  runAlex s loop
-  where
-    loop = do
-      (tok, err) <- alexComplementError alexMonadScan
-      when (isJust err) $ lexerError (fromJust err)
-      if isEOF tok
-      then do
-        ss <- getLexerStringState
-        when ss $ alexError "String not closed at end of file"
-        return [tok]
-      else do
-        toks <- loop
-        return $ tok : toks
+-- runAlex :: String -> Alex a -> Either String a
+-- runAlex input (Alex f) =
+--   let st = AlexState
+--     { alex_pos = alexStartPos
+--     , alex_inp = input
+--     , alex_chr = ’\n’
+--     , alex_bytes = []
+--     , alex_ust = alexInitUserState
+--     , alex_scd = 0
+--     } in
+--   case f st of
+--     Left msg -> Left msg
+--     Right (_, a) -> Right a
 
+-- Where `a` is `[Token]` in our case
+
+assertEOFState :: Alex ()
+assertEOFState = do
+  ss <- getLexerStringState
+  when ss $ alexError "String not closed at end of file"
+
+scanToken :: Alex Token
+scanToken = do
+  (tok, err) <- complementError alexMonadScan
+  when (isJust err) $ lexerError (fromJust err)
+  when (isEOF tok) $ assertEOFState
+  return tok
+
+scan :: String -> Either String [Token]
+scan str = do
+  runAlex str loop
+  where
+    loop :: Alex [Token]
+    loop = do
+      tok <- scanToken
+      toks <- loop
+      return $ tok : toks
+
+-- | Reports error with the given message.
 lexerError :: String -> Alex a
 lexerError msg = do
   (p, c, _, inp) <- alexGetInput
@@ -294,11 +335,19 @@ lexerError msg = do
   where
     trim = reverse . dropWhile (== ' ') . reverse . dropWhile (== ' ')
 
--- We capture the error message in order to complement it with the file position
-alexComplementError :: Alex a -> Alex (a, Maybe String)
-alexComplementError (Alex al) =
+-- | We capture the error message in order to complement it with the file position
+complementError :: Alex a -> Alex (a, Maybe String)
+complementError (Alex al) =
   Alex (\s -> case al s of
     Right (s', x) -> Right (s', (x, Nothing))
     Left  message -> Right (s, (undefined, Just message)))
 
+-- Code generated by Alex
+
+-- To invoke a scanner under the monad wrapper, use:
+-- alexMonadScan :: Alex a
+
+-- | The lexer function to be passed to Happy.
+lexer :: (Token -> Alex a) -> Alex a
+lexer cont = alexMonadScan >>= cont
 }

@@ -1,6 +1,6 @@
 dev:
 	stack build --test --no-run-tests
-	ghcid --restart=src/Haleidoscope/Lexer.x --command="cabal repl" | source-highlight -s haskell -f esc
+	ghcid --restart=src/Haleidoscope/Lexer.x --restart=src/Haleidoscope/Parser.y --command="cabal repl" | source-highlight -s haskell -f esc
 repl:
 	cabal repl
 build:
