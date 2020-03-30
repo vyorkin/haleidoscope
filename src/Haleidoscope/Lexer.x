@@ -2,8 +2,10 @@
 module Haleidoscope.Lexer
   ( Token(..)
   , Alex
-  , scan
+  , showPosn
   , runAlex
+  , alexGetInput
+  , alexError
   , alexMonadScan
   , lexer
   , module Haleidoscope.Lexer.Types
@@ -304,16 +306,6 @@ scanToken = do
   when (isJust err) $ lexerError (fromJust err)
   when (isEOF tok) $ assertEOFState
   return tok
-
-scan :: String -> Either String [Token]
-scan str = do
-  runAlex str loop
-  where
-    loop :: Alex [Token]
-    loop = do
-      tok <- scanToken
-      toks <- loop
-      return $ tok : toks
 
 -- | Reports error with the given message.
 lexerError :: String -> Alex a

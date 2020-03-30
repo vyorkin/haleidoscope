@@ -28,7 +28,6 @@ library
                      , Haleidoscope.Lexer
                      , Haleidoscope.Lexer.Types
                      , Haleidoscope.Parser
-                     , Haleidoscope.Parser.Types
                      , Haleidoscope.AST
                      , Haleidoscope.REPL
                      , Haleidoscope.LLVM
@@ -90,6 +89,10 @@ executable haleidoscope
   main-is:             Main.hs
 
   build-depends:       base
+                     , text ^>= 1.2
+                     , llvm-hs-pure ^>= 9.0
+                     , llvm-hs ^>= 9.0
+                     , llvm-hs-pretty ^>= 0.9
                      , haleidoscope
 
   ghc-options:         -Wall

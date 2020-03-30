@@ -17,7 +17,7 @@ module Haleidoscope.Parser (parse) where
 import Prelude hiding (GT, LT, EQ)
 
 import Haleidoscope.AST (AST(..), Expr(..), Op(..), Rel(..), Prototype(..))
-import Haleidoscope.Lexer (Alex, Token(..), lexer)
+import Haleidoscope.Lexer (Alex, Token(..), lexer, showPosn)
 import qualified Haleidoscope.Lexer as L
 }
 
@@ -159,7 +159,9 @@ binary : expr '>=' expr { BinOp (Cmp Ge) $1 $3 }
 -- module trailer, and any code in there is copied verbatim into
 -- the generated parser file.
 
--- TODO: Improve error msg
 parseError :: Token -> Alex a
-parseError _ = error "Parsing error"
+parseError (T pos l raw) = error $ "Parsing error on lexeme "
+  ++ show l
+  ++ " at " ++ showPosn pos
+  ++ maybe "" (\str -> ". Input: " ++ str) raw
 }

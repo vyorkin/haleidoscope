@@ -25,7 +25,64 @@ import LLVM.AST.Type (Type(FunctionType))
 import LLVM.AST.AddrSpace (AddrSpace(AddrSpace))
 import LLVM.AST.Name (Name)
 
+-- lvm-hs provides a monadic way of building up modules and
+-- functions, with ModuleBuilder and IRBuilder respectively.
+-- To generate our code we will traverse our AST inside
+-- these monads, spitting out LLVM IR as we go along
+
+-- | Map of operand bindings.
+-- An 'Operand' is roughly that which is an argument to an 'LLVM.AST.Instruction.Instruction'
 type Binds = Map String Operand
+
+-- | Reads operand bindings, emits IR.
+type ExprBuilder a = ReaderT Binds (IRBuilderT ModuleBuilder) a
+
+-- data Operand
+--   = LocalReference Type Name
+--   | ConstantOperand Constant
+--   | MetadataOperand Metadata
+--
+
+-- `IRBuilderT` provides a uniform API for creating instructions and inserting them
+-- into a basic block: either at the end of a `BasicBlock`, or at a specific
+-- location in a block
+
+-- newtype IRBuilderT m a =
+--   IRBuilderT { unIRBuilderT :: StateT IRBuilderState m a }
+--
+-- where
+--
+-- data IRBuilderState = IRBuilderState
+--   { builderSupply :: !Word
+--   , builderUsedNames :: !(Map ShortByteString Word)
+--   , builderNameSuggestion :: !(Maybe ShortByteString)
+--   , builderBlocks :: SnocList BasicBlock  -- reversed list of the basic blocks
+--   , builderBlock :: !(Maybe PartialBlock) -- (current) partially constructed block
+--   }
+
+-- type ModuleBuilder = ModuleBuilderT Identity
+--
+-- where
+--
+-- newtype ModuleBuilderT m a =
+--   ModuleBuilderT { unModuleBuilderT :: StateT ModuleBuilderState m a }
+-- and
+--
+-- data ModuleBuilderState = ModuleBuilderState
+--   { builderDefs :: SnocList Definition
+--   , builderTypeDefs :: Map Name Type
+--   }
+--
+-- data Definition
+--   = GlobalDefinition Global
+--   | TypeDefinition Name (Maybe Type)
+--   | ... metadata-related constructors ......................
+--   | ... and other things we're not interested in for now ...
+--
+-- data Global
+--   = GlobalVariable { ... }
+--   | GlobalAlias { ... }
+--   | Function { ... }
 
 buildAST :: AST -> ModuleBuilder Operand
 buildAST = \case
@@ -43,7 +100,7 @@ buildAST = \case
         -- should be executed after the current block is finished.
         -- Here we use `ret` as such "Terminator" to return
         -- control flow from a function back to the caller
-        body :: ReaderT Binds (IRBuilderT ModuleBuilder) ()
+        body :: ExprBuilder ()
         body = buildExpr bodyExpr >>= ret
     -- Define and emit a (non-variadic) function definition
     function name args Type.double $ \ops -> do
@@ -60,7 +117,7 @@ buildAST = \case
         body = const $ runReaderT expr mempty
     function "__anon_expr" [] Type.double body
 
-buildExpr :: Expr -> ReaderT Binds (IRBuilderT ModuleBuilder) Operand
+buildExpr :: Expr -> ExprBuilder Operand
 buildExpr = \case
   Num x ->
     -- Emit a constant value
@@ -70,7 +127,7 @@ buildExpr = \case
     binds <- ask
     case binds !? s of
       Just o -> pure o
-      Nothing -> error $ "''" <> s <> "' doesn't exist in scope"
+      Nothing -> error $ "'" <> s <> "' doesn't exist in scope"
   BinOp op a b -> do
     -- Evaluate (emit) expressions for both operands
     opA <- buildExpr a
