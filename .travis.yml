@@ -6,15 +6,6 @@ git:
 
 cabal: "3.0"
 
-env:
-  global:
-    - LLVM_VER=9.0.0
-
-addons:
-  apt:
-    packages:
-      - llvm-9-dev
-
 cache:
   directories:
   - "$HOME/.cabal/store"
@@ -31,6 +22,9 @@ matrix:
     env: STACK_YAML="$TRAVIS_BUILD_DIR/stack.yaml"
 
 install:
+  - wget https://apt.llvm.org/llvm.sh
+  - chmod +x llvm.sh
+  - sudo ./llvm.sh 9.0.0
   - |
     if [ -z "$STACK_YAML" ]; then
       ghc --version
