@@ -4,7 +4,7 @@ language: haskell
 git:
   depth: 5
 
-cabal: "2.4"
+cabal: "3.0"
 
 cache:
   directories:
@@ -32,7 +32,7 @@ install:
 script:
   - |
     if [ -z "$STACK_YAML" ]; then
-       cabal test all --enable-tests
+      cabal test all --enable-tests
     else
       stack test --system-ghc
     fi
