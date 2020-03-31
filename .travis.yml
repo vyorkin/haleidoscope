@@ -18,35 +18,17 @@ matrix:
   include:
   - ghc: 8.8.2
   
-  - ghc: 8.8.2
-    env: STACK_YAML="$TRAVIS_BUILD_DIR/stack.yaml"
-
 install:
   - wget https://apt.llvm.org/llvm.sh
   - chmod +x llvm.sh
   - sudo ./llvm.sh 9
-  - |
-    if [ -z "$STACK_YAML" ]; then
-      ghc --version
-      cabal --version
-      cabal update
-      cabal build --enable-tests
-    else
-      curl -sSL https://get.haskellstack.org/ | sh
-      stack --version
-      stack build --system-ghc --test --no-run-tests --no-run-benchmarks --ghc-options=-Werror
-    fi
+  - ghc --version
+  - cabal --version
+  - cabal update
+  - cabal build --enable-tests
 
 script:
-  - |
-    if [ -z "$STACK_YAML" ]; then
-      cabal test all --enable-tests
-    else
-      stack test --system-ghc
-    fi
-
-  # HLint check
-  # - curl -sSL https://raw.github.com/ndmitchell/neil/master/misc/travis.sh | sh -s -- hlint .
+  - cabal test all --enable-tests
 
 notifications:
   email: false
