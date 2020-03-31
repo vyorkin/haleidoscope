@@ -6,6 +6,11 @@ git:
 
 cabal: "3.0"
 
+addons:
+  apt:
+    packages:
+      - llvm-9
+
 cache:
   directories:
   - "$HOME/.cabal/store"
@@ -22,6 +27,9 @@ matrix:
 install:
   - |
     if [ -z "$STACK_YAML" ]; then
+      ghc --version
+      cabal --version
+      cabal update
       cabal build --enable-tests
     else
       curl -sSL https://get.haskellstack.org/ | sh
