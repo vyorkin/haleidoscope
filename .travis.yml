@@ -24,7 +24,7 @@ matrix:
 install:
   - wget https://apt.llvm.org/llvm.sh
   - chmod +x llvm.sh
-  - sudo ./llvm.sh 9.0.0
+  - sudo ./llvm.sh 9
   - |
     if [ -z "$STACK_YAML" ]; then
       ghc --version
